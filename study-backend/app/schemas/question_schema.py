@@ -1,10 +1,13 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class Question(BaseModel):
-    id: int
+    id: Optional[int]
     category_id: int
     question: str
-    answer: str
+    answer: Optional[str] = None
+    class Config:
+        orm_mode = True
     # dificulty: str
     # hint: str
 
