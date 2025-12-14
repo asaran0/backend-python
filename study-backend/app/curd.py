@@ -4,7 +4,7 @@ from app.schemas.question_schema import Question as QuestionSchema
 from app.schemas.category_schema import Category as CategorySchema
 from app.schemas.user_schma import UserSignup, UserResponse, UserLogin
 from app.utils.jwt_handler import hash_password, verify_password
-
+from datetime import datetime, timedelta
 #Category
 def get_categories(db: Session):
     return db.query(models.Category).all()
@@ -68,3 +68,55 @@ def create_user(db: Session, user: UserSignup):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+
+# Courses / Subjects / Subscriptions
+def create_course(db: Session, name: str, description: str | None, price: float):
+    c = models.Course(name=name, description=description, price=price)
+    db.add(c)
+    db.commit()
+    db.refresh(c)
+    return c
+
+def create_subject(db: Session, course_id: int, name: str, category_id: int | None = None):
+    s = models.Subject(course_id=course_id, name=name, category_id=category_id)
+    db.add(s)
+    db.commit()
+    db.refresh(s)
+    return s
+
+def list_courses(db: Session):
+    return db.query(models.Course).all()
+
+def get_course(db: Session, course_id: int):
+    return db.query(models.Course).filter(models.Course.id == course_id).first()
+
+def list_subjects_for_course(db: Session, course_id: int):
+    return db.query(models.Subject).filter(models.Subject.course_id == course_id).all()
+
+def create_subscription(db: Session, user_id: int, course_id: int, days: int = 30):
+    starts = datetime.utcnow()
+    expires = starts + timedelta(days=days)
+    sub = models.Subscription(user_id=user_id, course_id=course_id, active=True, starts_at=starts, expires_at=expires)
+    db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+def get_active_subscription(db: Session, user_id: int, course_id: int):
+    return db.query(models.Subscription).filter(
+        models.Subscription.user_id == user_id,
+        models.Subscription.course_id == course_id,
+        models.Subscription.active == True,
+        models.Subscription.expires_at > datetime.utcnow()
+    ).first()
+
+def user_has_active_subscription_for_category(db: Session, user_id: int, category_id: int) -> bool:
+    q = db.query(models.Subscription).join(models.Course).join(models.Subject).filter(
+        models.Subscription.user_id == user_id,
+        models.Subscription.active == True,
+        models.Subscription.expires_at > datetime.utcnow(),
+        models.Subject.category_id == category_id
+    ).first()
+    return bool(q)
