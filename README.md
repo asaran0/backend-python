@@ -19,3 +19,7 @@ Command Line Tools Installation Directory: /Library/PostgreSQL/18
 pgAdmin4 Installation Directory: /Library/PostgreSQL/18/pgAdmin 4
 Stack Builder Installation Directory: /Library/PostgreSQL/18
 Installation Log: /tmp/install-postgresql.log
+
+
+To install dependencies needed for security. auth encription.
+pip install "python-jose[cryptography]" "passlib[bcrypt]" python-multipart
