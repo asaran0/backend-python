@@ -1,5 +1,6 @@
 from app.db.database import SessionLocal, engine, Base
-from app.db.models import Category, Question
+from app.db.models import Category, Question, User
+from app.utils.jwt_handler import hash_password
 
 # Create tables if not exist
 Base.metadata.create_all(bind=engine)
@@ -10,6 +11,7 @@ db = SessionLocal()
 # Clear existing data (optional)
 db.query(Question).delete()
 db.query(Category).delete()
+db.query(User).delete()
 
 # Add categories
 categories_data = [
@@ -82,5 +84,28 @@ db.commit()
 print("✅ Database seeded successfully!")
 print(f"✅ Added {len(categories)} categories")
 print(f"✅ Added {len(questions_data)} questions")
+
+# Adding User Data
+test_user = User(
+    username="amar1",
+    email="amargpt17@gmail.com",
+    fullname="Amar Deep Gupta",
+    mobile_no="",
+    hashed_pwd=hash_password("pass"),
+)
+db.add(test_user)
+
+test_user2 = User(
+    username="amar2",
+    email="ved@gmail.com",
+    fullname="Ved",
+    mobile_no="",
+    hashed_pwd=hash_password("pass"),
+)
+db.add(test_user2)
+
+db.commit()
+print("✅ Added 2 users")
+print(f"✅ Total users in DB: {db.query(User).count()}")
 
 db.close()
